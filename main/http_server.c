@@ -142,7 +142,7 @@ static httpd_uri_t indexp = {
 
 esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err)
 {
-    httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Page not found");
+    httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "Page not found. Fuck Y");
     return ESP_FAIL;
 }
 

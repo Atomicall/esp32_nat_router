@@ -21,6 +21,10 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
+#include "i2c-lcd1602.h"
+#include "owb.h"
+
+
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
 
@@ -463,7 +467,7 @@ char* param_set_default(const char* def_val) {
 void app_main(void)
 {
     initialize_nvs();
-
+//i2c_lcd1602_info_t * lcd_info = i2c_lcd1602_malloc();
 #if CONFIG_STORE_HISTORY
     initialize_filesystem();
     ESP_LOGI(TAG, "Command history enabled");

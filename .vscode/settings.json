@@ -3,5 +3,12 @@
         "bleprph.h": "c",
         "*.ipp": "c",
         "*.contiki": "c"
-    }
+    },
+    "idf.adapterTargetName": "esp32",
+    "idf.flashType": "UART",
+    "idf.openOcdConfigs": [
+        "interface/ftdi/esp32_devkitj_v1.cfg",
+        "target/esp32.cfg"
+    ],
+    "idf.portWin": "COM19"
 }
