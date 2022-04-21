@@ -21,9 +21,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
-#include "i2c-lcd1602.h"
 #include "owb.h"
-
 
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
@@ -35,23 +33,25 @@
 #include "cmd_decl.h"
 #include <esp_http_server.h>
 
+#include "defines.h"
+
 #if !IP_NAPT
 #error "IP_NAPT must be defined"
 #endif
+
 #include "lwip/lwip_napt.h"
 
 #include "router_globals.h"
 
-// On board LED
-#define BLINK_GPIO 2
+#include "screen_menu.h"
+#include "encoder.h"
+
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t wifi_event_group;
-
 /* The event group allows multiple bits for each event, but we only care about one event
  * - are we connected to the AP with an IP? */
 const int WIFI_CONNECTED_BIT = BIT0;
-
 #define DEFAULT_AP_IP "192.168.4.1"
 #define DEFAULT_DNS "8.8.8.8"
 
@@ -77,7 +77,11 @@ esp_netif_t* wifiSTA;
 
 httpd_handle_t start_webserver(void);
 
-static const char *TAG = "ESP32 NAT router";
+
+QueueHandle_t encoderEvents = NULL;
+LCD_struct LCD;
+
+static const char* TAG = "ESP32 NAT router";
 
 /* Console command history can be stored to and loaded from a file.
  * The easiest way to do this is to use FATFS filesystem on top of
@@ -458,16 +462,55 @@ char* ap_ssid = NULL;
 char* ap_passwd = NULL;
 char* ap_ip = NULL;
 
-char* param_set_default(const char* def_val) {
+    char* param_set_default(const char* def_val) {
     char * retval = malloc(strlen(def_val)+1);
     strcpy(retval, def_val);
     return retval;
 }
 
+void screenEx(void* i){
+    ESP_LOGI("ex", "EX started");
+    while(1){
+    if( xSemaphoreTake(LCD.screenSem, portMAX_DELAY ) == pdTRUE ){
+    ESP_LOGI("ex", "EX TAKE");
+    //heap_caps_print_heap_info(MALLOC_CAP_DEFAULT);
+    u8g2_t* s = LCD.screen;
+    //u8g2_ClearDisplay(s);
+    //u8g2_ClearBuffer(s);
+    u8g2_SetFont(s, u8g2_font_3x5im_te);
+    u8g2_DrawStr(s, 2, 10, "FUCK");
+    u8g2_DrawFrame(s, 0, 0, 128, 64);
+    u8g2_SendBuffer(s);
+    ESP_LOGI("ex", "EX GIVE");
+    xSemaphoreGive(LCD.screenSem);
+    }
+    else{
+        ESP_LOGI("ex", "EX TAKE FAIL");
+    }
+    vTaskDelay(2000/portTICK_RATE_MS);
+    }
+
+}
+
+void my_function(){
+    LCD = startScreenRoutine();
+    encoderEvents = startEncoderRoutine();
+    if (xTaskCreate(screenEx,
+                  "screenEx",
+                  10000,
+                  NULL,
+                  10,
+                  NULL) != pdTRUE ) {
+                      ESP_LOGI(TAG, "Failed to start EX");
+                  };
+    
+}
+
+
 void app_main(void)
 {
     initialize_nvs();
-//i2c_lcd1602_info_t * lcd_info = i2c_lcd1602_malloc();
+
 #if CONFIG_STORE_HISTORY
     initialize_filesystem();
     ESP_LOGI(TAG, "Command history enabled");
@@ -513,6 +556,7 @@ void app_main(void)
     // Setup WIFI
     wifi_init(ssid, passwd, static_ip, subnet_mask, gateway_addr, ap_ssid, ap_passwd, ap_ip);
 
+    
     pthread_t t1;
     pthread_create(&t1, NULL, led_status_thread, NULL);
 
@@ -570,6 +614,7 @@ void app_main(void)
         prompt = "esp32> ";
 #endif //CONFIG_LOG_COLORS
     }
+    my_function();
 
     /* Main loop */
     while(true) {
