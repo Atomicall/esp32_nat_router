@@ -8,7 +8,9 @@
         "regex": "c",
         "spi_master.h": "c",
         "screen_menu.h": "c",
-        "encoder.h": "c"
+        "encoder.h": "c",
+        "xlocale": "cpp",
+        "random": "cpp"
     },
     "idf.adapterTargetName": "esp32",
     "idf.flashType": "UART",

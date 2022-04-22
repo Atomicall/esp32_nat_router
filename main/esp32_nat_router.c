@@ -43,8 +43,9 @@
 
 #include "router_globals.h"
 
-#include "screen_menu.h"
+#include "screen_routine.h"
 #include "encoder.h"
+#include "main_menu.h"
 
 
 /* FreeRTOS event group to signal when we are connected*/
@@ -469,18 +470,14 @@ char* ap_ip = NULL;
 }
 
 void screenEx(void* i){
+    MainMenu menu(LCD.screen);
     ESP_LOGI("ex", "EX started");
     while(1){
     if( xSemaphoreTake(LCD.screenSem, portMAX_DELAY ) == pdTRUE ){
     ESP_LOGI("ex", "EX TAKE");
     //heap_caps_print_heap_info(MALLOC_CAP_DEFAULT);
-    u8g2_t* s = LCD.screen;
-    //u8g2_ClearDisplay(s);
-    //u8g2_ClearBuffer(s);
-    u8g2_SetFont(s, u8g2_font_3x5im_te);
-    u8g2_DrawStr(s, 2, 10, "FUCK");
-    u8g2_DrawFrame(s, 0, 0, 128, 64);
-    u8g2_SendBuffer(s);
+    menu.constructBuffer();
+    u8g2_SendBuffer(LCD.screen);
     ESP_LOGI("ex", "EX GIVE");
     xSemaphoreGive(LCD.screenSem);
     }

@@ -7,20 +7,18 @@
 
 #include "sdkconfig.h"
 #include "u8g2_esp32_hal.h"
-
 #include "defines.h"
-
-static const char *scrRTAG = "ScreenRoutine";
-u8g2_t screen_struct;
-xSemaphoreHandle  screen_semaphore;
-TaskHandle_t screenRoutineHandle = NULL;
-
+#include "esp_log.h"
 
 typedef struct {
   u8g2_t* screen;
   xSemaphoreHandle screenSem;
 } LCD_struct;
 
+static const char *scrRTAG = "ScreenRoutine";
+u8g2_t screen_struct;
+xSemaphoreHandle  screen_semaphore;
+TaskHandle_t screenRoutineHandle = NULL;
 
 void initSpiAndDisplay();
 void screenRoutine(void *ignore);
@@ -45,15 +43,11 @@ void initSpiAndDisplay()
 void screenRoutine(void *ignore)
 {
   //vTaskDelay(5000/portTICK_RATE_MS); // не убирать!
-  ESP_LOGI(scrRTAG,"screenRoutine started");
+  ESP_LOGI (scrRTAG,"screenRoutine started");
   while (1) {
     if( xSemaphoreTake( screen_semaphore, portMAX_DELAY ) == pdTRUE ){
     ESP_LOGI("sc", "SEM SCR TAKE");
-    u8g2_ClearDisplay(&screen_struct);
-    u8g2_ClearBuffer(&screen_struct);
-    u8g2_SetFont(&screen_struct, u8g2_font_3x5im_te);
-    u8g2_DrawStr(&screen_struct, 0, 40, "ME");
-    u8g2_SendBuffer(&screen_struct);
+    
     vTaskDelay(1000 / portTICK_RATE_MS);
     ESP_LOGI("sc", "SEM SCR GIVE");
     xSemaphoreGive(screen_semaphore);
