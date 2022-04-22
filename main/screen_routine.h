@@ -1,33 +1,29 @@
+#ifndef SCREEN_ROUTINE_H
+#define SCREEN_ROUTINE_H
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
-#include <u8g2.h>
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <u8g2.h>
 
+#include "defines.h"
+#include "structs.h"
+#include "esp_log.h"
 #include "sdkconfig.h"
 #include "u8g2_esp32_hal.h"
-#include "defines.h"
-#include "esp_log.h"
 
-typedef struct {
-  u8g2_t* screen;
-  xSemaphoreHandle screenSem;
-} LCD_struct;
+
 
 static const char *scrRTAG = "ScreenRoutine";
 u8g2_t screen_struct;
-xSemaphoreHandle  screen_semaphore;
+xSemaphoreHandle screen_semaphore;
 TaskHandle_t screenRoutineHandle = NULL;
 
 void initSpiAndDisplay();
 void screenRoutine(void *ignore);
 LCD_struct startScreenRoutine();
 
-
-
-void initSpiAndDisplay()
-{
+void initSpiAndDisplay() {
   u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
   u8g2_esp32_hal.clk = PIN_CLK;
   u8g2_esp32_hal.mosi = PIN_MOSI;
@@ -40,49 +36,41 @@ void initSpiAndDisplay()
   u8g2_SetPowerSave(&screen_struct, 0);
 }
 
-void screenRoutine(void *ignore)
-{
-  //vTaskDelay(5000/portTICK_RATE_MS); // не убирать!
-  ESP_LOGI (scrRTAG,"screenRoutine started");
+void screenRoutine(void *ignore) {
+  // vTaskDelay(5000/portTICK_RATE_MS); // не убирать!
+  ESP_LOGI(scrRTAG, "screenRoutine started");
   while (1) {
-    if( xSemaphoreTake( screen_semaphore, portMAX_DELAY ) == pdTRUE ){
-    ESP_LOGI("sc", "SEM SCR TAKE");
-    
-    vTaskDelay(1000 / portTICK_RATE_MS);
-    ESP_LOGI("sc", "SEM SCR GIVE");
-    xSemaphoreGive(screen_semaphore);
-    }
-    else {
+    if (xSemaphoreTake(screen_semaphore, portMAX_DELAY) == pdTRUE) {
+      //ESP_LOGI("sc", "SEM SCR TAKE");
+      //u8g2_ClearDisplay(&screen_struct);
+      //vTaskDelay(3000 / portTICK_RATE_MS);
+        //ESP_LOGI("sc", "SEM SCR GIVE");
+      xSemaphoreGive(screen_semaphore);
+    } else {
       ESP_LOGI("sc", "SCR SEM TAKE FAIL");
     }
-    vTaskDelay(2000/portTICK_RATE_MS);
-    
-  }
+    vTaskDelay(10000 / portTICK_RATE_MS);
+  };
 }
 
-LCD_struct startScreenRoutine()
-{
+LCD_struct startScreenRoutine() {
   initSpiAndDisplay();
   //семафор и сам ресурс
   LCD_struct lcd;
   lcd.screen = &screen_struct;
   screen_semaphore = xSemaphoreCreateMutex();
-  if (!screen_semaphore){
-    ESP_LOGI(scrRTAG,"Failed to vSemaphoreCreateBinary(lcd.screenSem); ");
+  if (!screen_semaphore) {
+    ESP_LOGI(scrRTAG, "Failed to vSemaphoreCreateBinary(lcd.screenSem); ");
   }
   lcd.screenSem = screen_semaphore;
-  if (xTaskCreate(screenRoutine,
-                  "Screen_routine",
-                  4000,
-                  NULL,
-                  10,
-                  &screenRoutineHandle) == pdTRUE)
-  {
-    ESP_LOGI(scrRTAG, "ScreenRoutine started");
-  }
-  else
-  {
-    ESP_LOGI(scrRTAG, "Failed to start ScreenRoutine");
-  }
+  // if (xTaskCreate(screenRoutine, "Screen_routine", 4000, NULL, 10,
+  //                 &screenRoutineHandle) == pdTRUE) {
+  //   ESP_LOGI(scrRTAG, "ScreenRoutine started");
+  // } else {
+  //   ESP_LOGI(scrRTAG, "Failed to start ScreenRoutine");
+  // }
   return lcd;
 }
+
+
+#endif /* C7F34D37_DBD5_42E0_96F5_6D1C99A78347 */

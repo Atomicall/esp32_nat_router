@@ -21,7 +21,6 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
-#include "owb.h"
 
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
@@ -45,7 +44,7 @@
 
 #include "screen_routine.h"
 #include "encoder.h"
-#include "main_menu.h"
+#include "menu_logic.h"
 
 
 /* FreeRTOS event group to signal when we are connected*/
@@ -81,6 +80,7 @@ httpd_handle_t start_webserver(void);
 
 QueueHandle_t encoderEvents = NULL;
 LCD_struct LCD;
+struct menu_screen* mainMenu;
 
 static const char* TAG = "ESP32 NAT router";
 
@@ -470,14 +470,15 @@ char* ap_ip = NULL;
 }
 
 void screenEx(void* i){
-    MainMenu menu(LCD.screen);
+   // mainMenu = constructMain_menu_Struct(LCD.screen);
     ESP_LOGI("ex", "EX started");
     while(1){
     if( xSemaphoreTake(LCD.screenSem, portMAX_DELAY ) == pdTRUE ){
     ESP_LOGI("ex", "EX TAKE");
     //heap_caps_print_heap_info(MALLOC_CAP_DEFAULT);
-    menu.constructBuffer();
-    u8g2_SendBuffer(LCD.screen);
+    //mainMenu->constructBuffer(mainMenu->screen);
+    //menu.constructBuffer();
+    //u8g2_SendBuffer(LCD.screen);
     ESP_LOGI("ex", "EX GIVE");
     xSemaphoreGive(LCD.screenSem);
     }
@@ -492,14 +493,16 @@ void screenEx(void* i){
 void my_function(){
     LCD = startScreenRoutine();
     encoderEvents = startEncoderRoutine();
-    if (xTaskCreate(screenEx,
-                  "screenEx",
-                  10000,
-                  NULL,
-                  10,
-                  NULL) != pdTRUE ) {
-                      ESP_LOGI(TAG, "Failed to start EX");
-                  };
+    menu_logic* menu = constructMenu_logicStruct(LCD, encoderEvents);
+    menu->startMenuLogicTask(menu);
+    // if (xTaskCreate(screenEx,
+    //               "screenEx",
+    //               10000,
+    //               NULL,
+    //               10,
+    //               NULL) != pdTRUE ) {
+    //                   ESP_LOGI(TAG, "Failed to start EX");
+    //               };
     
 }
 

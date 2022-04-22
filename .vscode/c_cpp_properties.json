@@ -1,17 +1,24 @@
 {
     "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "${IDF_PATH}/**"
-            ],
-            "defines": [],
-            "compilerPath": "/home/mfg/esp32/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
-        }
+      {
+        "name": "ESP-IDF",
+        "cStandard": "c11",
+        "cppStandard": "c++17",
+        "includePath": [
+          "${config:idf.espIdfPath}/components/**",
+          "${config:idf.espIdfPathWin}/components/**",
+          "${workspaceFolder}/**"
+        ],
+        "browse": {
+          "path": [
+            "${config:idf.espIdfPath}/components",
+            "${config:idf.espIdfPathWin}/components",
+            "${workspaceFolder}"
+          ],
+          "limitSymbolsToIncludedHeaders": false
+        },
+        "compilerPath": "/path/to/toolchain-gcc"
+      }
     ],
     "version": 4
-}
+  }
