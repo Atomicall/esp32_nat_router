@@ -44,7 +44,9 @@
 
 #include "screen_routine.h"
 #include "encoder.h"
+#include "button.h"
 #include "menu_logic.h"
+
 
 
 /* FreeRTOS event group to signal when we are connected*/
@@ -81,6 +83,7 @@ httpd_handle_t start_webserver(void);
 QueueHandle_t encoderEvents = NULL;
 LCD_struct LCD;
 struct menu_screen* mainMenu;
+QueueHandle_t buttonsEvents = NULL;
 
 static const char* TAG = "ESP32 NAT router";
 
@@ -493,16 +496,10 @@ void screenEx(void* i){
 void my_function(){
     LCD = startScreenRoutine();
     encoderEvents = startEncoderRoutine();
-    menu_logic* menu = constructMenu_logicStruct(LCD, encoderEvents);
+    buttonsEvents = pulled_button_init(ENC_BUTTON, GPIO_PULLDOWN_ONLY);
+    menu_logic* menu = constructMenu_logicStruct(LCD, encoderEvents, buttonsEvents);
     menu->startMenuLogicTask(menu);
-    // if (xTaskCreate(screenEx,
-    //               "screenEx",
-    //               10000,
-    //               NULL,
-    //               10,
-    //               NULL) != pdTRUE ) {
-    //                   ESP_LOGI(TAG, "Failed to start EX");
-    //               };
+    
     
 }
 

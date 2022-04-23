@@ -19,6 +19,7 @@ typedef struct {
 
 typedef struct {
   QueueHandle_t encoderEventsQueue;
+  QueueHandle_t buttonsEventsQueue;
   LCD_struct lcdStruct;
   menu_screen* currentMenu;
   // передаем подготовленную структуру

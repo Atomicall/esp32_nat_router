@@ -17,9 +17,10 @@ void updateCurrentScreen(menu_logic* thiS);
 bool generateMenu(menu_logic* thiS, UserInterract* uInp);
 
 //1
-menu_logic* constructMenu_logicStruct(LCD_struct lcdS, QueueHandle_t encEvQ){
+menu_logic* constructMenu_logicStruct(LCD_struct lcdS, QueueHandle_t encEvQ, QueueHandle_t buttEvQ){
 menu_logic* ptr = (menu_logic*)malloc(sizeof(menu_logic));
 ptr->encoderEventsQueue = encEvQ;
+ptr->buttonsEventsQueue = buttEvQ;
 ptr->lcdStruct = lcdS;
 ptr->currentMenu  = constructMain_menu_Struct(ptr->lcdStruct.screen);
 ptr->startMenuLogicTask = &_startMenuLogicTask;
@@ -60,6 +61,7 @@ void menuLogicRoutine(void* argThis){
 
 
 //4
+//где-то тут. Надо делать чтение пользовательского ВВОДА!
 void readUserInput(menu_logic* thiS, UserInterract* uInp){
     //ESP_LOGI("readUserInput", "Entered readUserInput, tr to recieve enc Ev");
     uInp->enc_button = 0;
